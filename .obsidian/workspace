@@ -1,0 +1,98 @@
+{
+  "main": {
+    "id": "01b2257cb8cf9f25",
+    "type": "split",
+    "children": [
+      {
+        "id": "c6dc7886dcf99b13",
+        "type": "leaf",
+        "state": {
+          "type": "markdown",
+          "state": {
+            "file": "INSTALLING PACKAGES/TESTING VM.md",
+            "mode": "preview"
+          }
+        }
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "19b57554c24c1c7d",
+    "type": "split",
+    "children": [
+      {
+        "id": "deb410cb042f4910",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "3606c46325598f4e",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {}
+            }
+          },
+          {
+            "id": "c0cebaf192060a8f",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "1427d15db7310cba",
+    "type": "split",
+    "children": [
+      {
+        "id": "0a2a401cbde77c08",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "a6f7a8f70291ccab",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "INSTALLING PACKAGES/TESTING VM.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "active": "c6dc7886dcf99b13",
+  "lastOpenFiles": [
+    "INSTALLING PACKAGES/TESTING VM.md",
+    "TESTING VM.md",
+    "OS SPECS/TESTING VM.md",
+    "OS SPECS/TESTING-VM.md",
+    "TESTING-VM.md",
+    "Untitled.md"
+  ]
+}
