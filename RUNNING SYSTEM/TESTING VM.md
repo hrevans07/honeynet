@@ -59,8 +59,44 @@ corsarotrace is used to run various plugins which read from the second multicast
 Like corsarotagger, corsarotrace requires a .yaml file for its configuration. The basic one used for this testing system:
 
 ```yaml
-outtemplate: "/home/test/testing/corsarotrace_output/analysis-%s-%N.%P.gz"
-packetsource: "ndag:lo,225.225.0.1,8999"
+outtemplate: "/home/test/testing/corsarotrace_output/test-%Y%m%d-%H%M%S"
+packetsource: "ndag:lo,225.200.0.100,8999"
+controlsocketname: "tcp://127.0.0.2:6009"
+plugins:
+  - flowtuple:
+      sorttuples: yes
 ```
+The command to start corsarotagger as well as expected output:
+```bash
+test@test-VirtualBox:~/testing$ sudo corsarotrace -l terminal -c traceconfig.yaml 
+[09:19:59.907] corsarotrace: enabling flowtuple plugin
+[09:19:59.907] corsarotrace: running on monitor (null)
+[09:19:59.907] corsarotrace: interval length is set to 60 seconds
+[09:19:59.907] corsarotrace: rotating files every 4 intervals
+[09:19:59.907] corsarotrace: packets are being read from ndag:lo,225.200.0.100,8999
+[09:19:59.907] corsarotrace: connecting to corsarotagger control socket: tcp://127.0.0.2:6009
+[09:19:59.907] corsarotrace: waiting for message from tagger control socket...
+[09:19:59.908] corsarotrace: corsarotagger is using 2 tagger threads
+[09:19:59.908] corsarotrace: flowtuple plugin: using 4 merging threads
+[09:19:59.908] corsarotrace: flowtuple plugin: sorting flowtuples before output
+[09:19:59.908] corsarotrace: flowtuple plugin: using deflate compression for avro output
+```
+*Note that this output could change drastically depending on what plugins are defined in the trace config file*
 
-## corsarowdcap (?)
+## Influxdb
+Once Influxdb is installed on the system, its daemon should autorun when the system starts up. This can be verified with systemctl:
+```bash
+$ systemctl status influxdb
+● influxdb.service - InfluxDB is an open-source, distributed, time series database
+     Loaded: loaded (/lib/systemd/system/influxdb.service; enabled; vendor preset: enabled)
+     Active: active (running) since Mon 2021-08-09 11:24:22 CDT; 2min 7s ago
+       Docs: https://docs.influxdata.com/influxdb/
+   Main PID: 5641 (influxd)
+      Tasks: 14 (limit: 9483)
+     Memory: 19.5M
+     CGroup: /system.slice/influxdb.service
+             └─5641 /usr/bin/influxd -config /etc/influxdb/influxdb.conf
+```
+Assuming the instructions for installing/configuring influx in the 'INSTALLING PACKAGES'  folder were followed and the telegraf.conf file is up to date, there shouldn't be anything else that needs doing with influx. 
+
+## Telegraf container
