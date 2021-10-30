@@ -28,7 +28,7 @@ File size | 50 GB
 	* To the right of where you just clicked ther should be a section labeled Attributes
 	* Click on the small blue disk in the attributes section
 	* Select the "Choose a disk file" option
-	* Browse to the .iso location in this case 
+	* Browse to the .iso location, in this case 
 	```windows
 	E:\Summer 2021 Research\ubuntu-20.04.2.0-desktop-amd64.iso
 	```

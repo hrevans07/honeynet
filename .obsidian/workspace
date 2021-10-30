@@ -9,7 +9,18 @@
         "state": {
           "type": "markdown",
           "state": {
-            "file": "INSTALLING PACKAGES/TESTING VM.md",
+            "file": "SETTING UP VIRUTALIZATION.md",
+            "mode": "source"
+          }
+        }
+      },
+      {
+        "id": "75f93927d8670b9f",
+        "type": "leaf",
+        "state": {
+          "type": "markdown",
+          "state": {
+            "file": "SETTING UP VIRUTALIZATION.md",
             "mode": "preview"
           }
         }
@@ -68,7 +79,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "INSTALLING PACKAGES/TESTING VM.md",
+                "file": "SETTING UP VIRUTALIZATION.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -88,14 +99,15 @@
   },
   "active": "c6dc7886dcf99b13",
   "lastOpenFiles": [
+    "SETTING UP VIRUTALIZATION.md",
+    "INSTALL PACKAGES - UBUNTU SERVER.md",
+    "Untitled.md",
     "INSTALLING PACKAGES/TESTING VM.md",
     "RUNNING SYSTEM/TESTING VM.md",
     "Notes/Questions for Shane.md",
-    "README.md",
-    "Untitled.md",
-    "TESTING VM.md",
     "OS SPECS/TESTING VM.md",
-    "OS SPECS/TESTING-VM.md",
-    "TESTING-VM.md"
+    "README.md",
+    "TESTING VM.md",
+    "OS SPECS/TESTING-VM.md"
   ]
 }

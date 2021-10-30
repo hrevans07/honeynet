@@ -103,7 +103,6 @@ $ git clone https://github.com/CAIDA/telegraf-friendlytagger/
 # Before we can build the container, need to make a revision to docker/Dockerfile
 # On the first line of the file, change 'FROM golang:alpine' to 'FROM golang:1.15-alpine'
 $ docker build -t friendlytag -f docker/Dockerfile .
-
 ```
  Now that the container is built, some changes must be made to the telegraf conf file
 Open the Docker/telegraf.conf file  with a text editor of your choice and edit the 'OUTPUT PLUGINS' and 'INPUT PLUGINS' to look like the examples below
@@ -184,7 +183,7 @@ data_format = "influx"
 Now that the input and output have been configured, the container is ready to run. 
 ```bash
 # Note: this command should be ran from the same directory as before, or the topmost directory of the git clone command
-$ docker run --name <choose a name> -v $(pwd)/docker/telegraf.conf:/etc/telegraf/telegraf.conf:ro friendlytag telegraf
+$ docker run --name <choose a name> -v /home/honeynet/test_trace:/tmp:ro -v $(pwd)/docker/telegraf.conf:/etc/telegraf/telegraf.conf:ro friendlytag telegraf
 # Now you should be seeing tagger output being printed to the console 
 ```
 
@@ -201,17 +200,22 @@ InfluxDB is an open-source time series database. For this project it will be use
 - The instructions for installing InfluxDB **on Debian/Ubuntu** via terminal appear below as of 28/7/2021
 ```bash
 # Note these commands must be ran as the super user
-wget -qO- https://repos.influxdata.com/influxdb.key | gpg --dearmor > /etc/apt/trusted.gpg.d/influxdb.gpg
-export DISTRIB_ID=$(lsb_release -si); export DISTRIB_CODENAME=$(lsb_release -sc)
-echo "deb [signed-by=/etc/apt/trusted.gpg.d/influxdb.gpg] https://repos.influxdata.com/${DISTRIB_ID,,} ${DISTRIB_CODENAME} stable" > /etc/apt/sources.list.d/influxdb.list
+## get dependencies figured out
+$ wget -qO- https://repos.influxdata.com/influxdb.key | gpg --dearmor > /etc/apt/trusted.gpg.d/influxdb.gpg
+$ export DISTRIB_ID=$(lsb_release -si); export DISTRIB_CODENAME=$(lsb_release -sc)
+$ echo "deb [signed-by=/etc/apt/trusted.gpg.d/influxdb.gpg] https://repos.influxdata.com/${DISTRIB_ID,,} ${DISTRIB_CODENAME} stable" > /etc/apt/sources.list.d/influxdb.list
+# install influx
+$ sudo apt-get update && sudo apt-get install influxdb
+# Then start the db with 
+$ sudo service influxdb start
 ```
-For this system to function properly, there are more hoops to jump. Things that need to be created:
+For this system to function properly, there are more hoops to jump through. Things that need to be created:
 - Database for writing our data to/UCSD querying
 - Admin user so that influx can respond to HTTP requests
 - A user for UCSD to read data
 - A user for the container to write data
 
-Most of these steps are fairly simple and can be completed in a step or two. Useful documentation for working with influx can be found @ https://docs.influxdata.com/influxdb/v1.8/
+Most of these steps are fairly simple and can be completed quickly. Useful documentation for working with influx can be found @ https://docs.influxdata.com/influxdb/v1.8/
 - Creating database:
 ```SQL
 # First start the CLI
@@ -221,7 +225,7 @@ InfluxDB shell version: 1.8.6
 > CREATE DATABASE testdb
 > 
 ```
-*Note, a new prompt appearing after hitting enter is the expected behavior. This is how most successful commands show they were successful in influx*
+*Note, a new prompt appearing after hitting enter is the expected behavior. This is how most commands show they were successful in influx*
 - Creating admin user and users for reading and writing data
 ```SQL
 > CREATE USER administrator WITH PASSWORD 'password' WITH ALL PRIVILEGES

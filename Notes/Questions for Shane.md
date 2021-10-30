@@ -39,3 +39,13 @@ I'm starting to wonder if the two multicasters are interfering with each other s
 	- new ifconfig
 	- new corsarotagger config
 	- tracertstat comand is now: ``` sudo tracertstats -i 1 ndag:"eth20:0",225.200.0.100,8999```
+
+
+## 24/8/2021
+- changing multicast:
+	- tracemcast:
+		- ran: sudo tracemcast -s 10.0.2.15 enp0s3
+			- 10.0.2.15 is addr of enp0s3
+	- tagger:
+		- inputuri: "ndag:enp0s3,225.100.0.1,9999"
+	- error persisted
