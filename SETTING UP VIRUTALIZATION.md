@@ -18,7 +18,7 @@ Virtualization:                  VT-x
 - **Enable VT-d and SR-IOV**
 	- You can verify that VT-d is enabled by checking dmesg, which is kind of like log files for the linux kernel. 
 	- run ```dmesg | grep -i 'iommu'```
-	- if you see any hits, then VT-d is enabled and SR-IOV are enabled, if not then it probably needs turning on in BIOS like VT-x
+	- if you see any hits, then VT-d  and SR-IOV are enabled, if not then it probably needs turning on in BIOS like VT-x
 	- SR-IOV is almost never enabled by defualt, so to enable it do the following:
 		- Note this can be checked by grepping dmesg for iommu again, as this should enable it
 ```bash
@@ -54,7 +54,12 @@ Initial VFs: 8, Total VFs: 8, Number of VFs: 0, Function Dependency Link: 00
 $ echo <number of VFs> > /sys/class/net/<device>/device/sriov_numvfs
 # Note that the path can be different for each system. 'net' could be something like 'network' or something unrelated like 'ininiband' 
 ```
-Unfortuantely, this is a change that must be made every time the system is booted. So save the echo command to a file and add a cron to run it as a script every time the system is rebooted. This cron must be ran as root.
+Unfortuantely, this is a change that must be made every time the system is booted. So save the echo command to  */etc/rc.local* and make it executable.
+```bash
+# Also worth noting that you should add a shebang at the top of the file
+# ex. #!/usr/bin/bash
+$ chmod +x /etc/rc.local
+```
 
 Next, we need to make sure that the PCI devices are grouped into separate IOMMU groups. These devices are what the last step created, and if they're grouped together that's very bad news.
 
@@ -102,6 +107,7 @@ $ sudo adduser $USER libvirt
 - Relogin to make these changes effective
 ## virt-manager
 - Note this needs to be installed on a machine with a GUI, does not need to be machine that will be doing virtualization
+- This guide will assume that you are using a separate linux host to run virt-manager. A VM works for this if you don't have a physical host, so long as it has a GUI.
 
 Formal documentation for installing virt-manager found @ *https://help.ubuntu.com/community/KVM/VirtManager*
 ```bash 
@@ -137,7 +143,7 @@ You should now see an entry under QEMU/KVM on the dashboard. Right click where i
 - Provide the path to the installation medium and select the operating system you are installing
 	- Note the installation media should be on the host that will be running the VM not the one running virt-manager
 - Configure memory and number of CPUs.
-- For the disk, we will select or create custom storage, and click Manage
+- For the disk, create a custom storage, and click Manage
 	- Select a storage pool, or create a new one.
 	- Select a name and capacity for the disk. qcow2 is the recommended format
 	- Select the volume you just creted and click Choose Volume
@@ -152,3 +158,123 @@ You should now see an entry under QEMU/KVM on the dashboard. Right click where i
 - Install the operating system.
 - Once the operating system is installed and you are prompted to remove the installation CD, click the green "i" button to go back into the VM configuration and remove the CDROM device. Do not delete the storage medium as this will remove the installation ISO from your system.
 - Restart the VM and it should be ready for use.
+
+## PCI Stuff v2
+This is where all the PCI configuration we did earlier will come in handy. 
+- Launch virt-manager from your managment host
+- Make sure the VM you are working on is turned off.
+- Click on the blue circle with an 'i' in it at the top of the screen. This should show you the VM's hardware details.
+- Click on 'Add Hardware' in the bottom left corner of the screen
+- In the new screen that pops up click on 'PCI Host Device' on the left side of the screen
+- You should now see a list of PCI devices. You need to select one of the virtual functions that you created in the PCI section earlier. If you don't know the names of these you can find them out by running ```
+lshw -c network -businfo | grep 'Virtual Function' ``` on the host machine. For example:
+```bash
+honeynet@honeynet:~/raw_captures$ lshw -c network -businfo | grep 'Virtual Function'
+WARNING: you should run this program as super-user.
+pci@0000:18:10.1  enp24s0f1v0   network        X550 Virtual Function
+pci@0000:18:10.3                network        X550 Virtual Function
+pci@0000:18:10.5  enp24s0f1v2   network        X550 Virtual Function
+pci@0000:18:10.7  enp24s0f1v3   network        X550 Virtual Function
+```
+- Like the warning says, if you don't see any output run it as super user
+	- Also, if you are running multiple VM's it's best if you use one VF per VM.
+- Once you've selected an appropriate VF, click on finish in the bottom right of the screen.
+- Now, when you boot up the VM you should see an additional interface that was not there before which cooresponds to the Virtual Function
+
+## Network Configuration
+The next step is to give this VM the IP's that you are going to be monitoring so that traffic routed accordingly. 
+- For this install, we have a /22 network that we are monitoring.
+- You may need some assistance from your network admins to figure out your address range. In this installation our /22 is on the addresses of: 192.168.72.0/22
+- So what you must do in this situation is create a *netplan* configuration file that has *every* address of this /22 in it.
+- This configuration file will be located at /etc/netplan/*somthing*_config.yml
+	- If this file/directory doesn't exist you will need to initialize it and also make sure your system has netplan. It should be default, though.
+- So the netplan config will look something like this: 
+```bash
+network:
+  version: 2
+  renderer: networkd
+  ethernets:
+    enp24s0f1:
+      addresses:
+         -  128.105.72.10/22
+         -  128.105.72.11/22
+         -  128.105.72.12/22
+         -  128.105.72.13/22
+		 
+		 # ... keep doing this for every addr in the /22
+		 
+		 -  128.105.75.254/22
+      gateway4: 128.105.72.1
+      nameservers:
+        addresses: [128.104.254.254, 144.92.254.254]
+    eno1:
+      optional: true
+    eno2:
+      optional: true
+    enp24s0f0:
+      optional: true
+```
+- In this example, the first 10 addresses are intentionally left out. This is to give the subnet a gateway and also allocate some addresses for the VM's host machine.
+	- Like I said, if you don't know your address range, consult your network admins or whoever is in charge of routing you the traffic you will be analyzing.
+- Once you've made these changes, you need to apply them.
+```bash
+# Make sure your configuration is valid first
+$ sudo netplan try
+# This will attempt to apply changes and let you know if the config is not valid
+
+# Once you know config is valid, apply changes
+$ sudo netplan apply
+```
+- Now you can make sure everything is working by using tcpdump to see if packets addressed for your address range are hitting the VM.
+## IPTables
+One quick thing you need to do before running honeytrap is to configure your VM OS to drop incoming packets.
+- Since you probably want to be able to manage the VM, you should only drop the packets received on your public interface, or the one you set up using virtual functions.
+```bash
+# Set iptables rule
+$ sudo iptables -A INPUT -i <interface of VF> -j DROP
+# This way you will still be able to ssh to the VM using the default shared subnet between host and VM
+# Save the rules
+$ sudo iptables-save > /etc/iptables/rules.v4
+# Might need to initialize directory and run as super user
+```
+
+## Honeytrap
+Now that all the VM and host configuration is taken care of, it's time to get honeytrap on the system.
+```bash
+# First, get the source code from github
+$ cd <directory where you want the source>
+$ git clone https://github.com/honeytrap/honeytrap
+
+# Now to build the binary.
+# These commands are taken from the Dockerfile in the git repo
+$ CGO_ENABLED=1
+$ GOOS=linux
+$ go build -a -installsuffix cgo -tags="" -ldflags="$(go run scripts/gen-ldflags.go)" -o /usr/local/sbin/canary
+# This will place the 'canary' binary in /usr/local/sbin
+# It should be in the path by default. Test with
+$ canary
+# If you see 'canary: command not found' or something similar, add directory to the path
+```
+Now that the binary is built, you need a simple configuration file. Place the following in *config.toml*
+```toml
+[channel.console]  
+type="console"  
+  
+[channel.filelog]  
+type="file"  
+filename="/data/honeytrap/honeytrap.log"  
+  
+[[filter]]  
+channel=["console", "filelog"]
+```
+- Note that the directory /data/honeytrap may need to be initialized. Alternatively you can use a different location by specifying it with filename=
+
+
+Now you can try to run the canary sensor!
+```bash
+$ sudo canary --config config.toml --data /data
+# This should produce a good amount of output talking about honeytrap starting 
+# must be ran as super user, unless your current user has some special permissions
+# You should see output in the console whenever traffic hits honeytrap.
+# Verify this by checking in the data directory you entered into the config file. /data/honeytrap/honeytrap.log in this example
+```
